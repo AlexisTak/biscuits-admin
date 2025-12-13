@@ -1,0 +1,75 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-01-08T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "wrk_biscuits",
+      "_type": "workspace",
+      "name": "Biscuits Dev API",
+      "description": "API Laravel Biscuits Dev",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8000",
+        "api_url": "http://localhost:8000/api"
+      },
+      "parentId": "wrk_biscuits"
+    },
+    {
+      "_id": "req_contact_store",
+      "_type": "request",
+      "parentId": "fld_public",
+      "name": "Contact - Submit",
+      "method": "POST",
+      "url": "{{ api_url }}/contacts",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Marie Dupont\",\n  \"email\": \"marie@exemple.fr\",\n  \"country\": \"France\",\n  \"service\": \"Starter Kit Next.js\",\n  \"message\": \"Je souhaite un starter kit pour mon projet e-commerce.\",\n  \"honey\": \"\",\n  \"timestamp\": 1704672000000\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ]
+    },
+    {
+      "_id": "req_devis_store",
+      "_type": "request",
+      "parentId": "fld_public",
+      "name": "Devis - Submit",
+      "method": "POST",
+      "url": "{{ api_url }}/devis",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Jean Martin\",\n  \"email\": \"jean@exemple.fr\",\n  \"service\": \"Application web\",\n  \"budget\": \"5000-10000€\",\n  \"message\": \"Besoin d'une application de gestion.\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ]
+    },
+    {
+      "_id": "fld_public",
+      "_type": "request_group",
+      "parentId": "wrk_biscuits",
+      "name": "Public API"
+    }
+  ]
+}
