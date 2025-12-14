@@ -1,17 +1,17 @@
 <?php
-
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Contact extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * The attributes that are mass assignable.
+     */
     protected $fillable = [
         'name',
         'email',
@@ -27,8 +27,12 @@ class Contact extends Model
         'is_read',
         'ip_address',
         'user_agent',
+        'fingerprint',
     ];
 
+    /**
+     * The attributes that should be cast.
+     */
     protected $casts = [
         'is_read' => 'boolean',
         'created_at' => 'datetime',
@@ -37,62 +41,80 @@ class Contact extends Model
     ];
 
     /**
-     * ✅ RELATION : Un contact peut avoir plusieurs devis
-     * 
-     * La relation se fait via l'email (un même email peut avoir plusieurs devis)
+     * The attributes that should be hidden for serialization.
      */
-    public function devis(): HasMany
-    {
-        return $this->hasMany(Devis::class, 'email', 'email');
-    }
+    protected $hidden = [
+        'ip_address',
+        'user_agent',
+        'fingerprint',
+    ];
 
     /**
-     * Scope : Contacts non lus
+     * Scopes
      */
-    public function scopeUnread(Builder $query): Builder
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeProcessed($query)
+    {
+        return $query->where('status', 'processed');
+    }
+
+    public function scopeArchived($query)
+    {
+        return $query->where('status', 'archived');
+    }
+
+    public function scopeUnread($query)
     {
         return $query->where('is_read', false);
     }
 
-    /**
-     * Scope : Par statut
-     */
-    public function scopeStatus(Builder $query, string $status): Builder
+    public function scopeHighPriority($query)
     {
-        return $query->where('status', $status);
+        return $query->where('priority', 'high');
+    }
+
+    public function scopeRecent($query)
+    {
+        return $query->orderBy('created_at', 'desc');
     }
 
     /**
-     * Scope : Récents (moins de 7 jours)
+     * Accessors
      */
-    public function scopeRecent(Builder $query): Builder
+    public function getFormattedDateAttribute(): string
     {
-        return $query->where('created_at', '>=', now()->subDays(7));
+        return $this->created_at->format('d/m/Y à H:i');
     }
 
-    /**
-     * Accessor : Nom du statut traduit
-     */
-    public function getStatusLabelAttribute(): string
+    public function getStatusBadgeAttribute(): string
     {
-        return match ($this->status) {
-            'pending' => 'En attente',
-            'processed' => 'Traité',
-            'archived' => 'Archivé',
-            default => ucfirst($this->status),
+        return match($this->status) {
+            'pending' => '🟡 En attente',
+            'processed' => '🟢 Traité',
+            'archived' => '⚪ Archivé',
+            default => '⚫ Inconnu',
+        };
+    }
+
+    public function getPriorityBadgeAttribute(): string
+    {
+        return match($this->priority) {
+            'high' => '🔴 Haute',
+            'normal' => '🟠 Normale',
+            'low' => '🟢 Basse',
+            default => '⚪ Non définie',
         };
     }
 
     /**
-     * Accessor : Couleur du badge statut
+     * Mutators
      */
-    public function getStatusColorAttribute(): string
+    public function setEmailAttribute($value)
     {
-        return match ($this->status) {
-            'pending' => 'yellow',
-            'processed' => 'green',
-            'archived' => 'gray',
-            default => 'blue',
-        };
+        $this->attributes['email'] = strtolower(trim($value));
     }
 }

@@ -13,19 +13,40 @@ use App\Http\Controllers\TicketController;
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['throttle:10,1'])->group(function () {
-    // Formulaire de contact (frontend Astro)
-    Route::post('/contacts', [ContactController::class, 'store']);
-    
-    // Formulaire de devis (frontend Astro)
-    Route::post('/devis', [DevisController::class, 'store']);
-});
-
+// Health check (pas de throttle, pour monitoring)
 Route::get('/health', function () {
     return response()->json([
         'status' => 'ok',
         'timestamp' => now()->toIso8601String(),
+        'service' => 'Biscuits Dev API',
     ]);
+});
+
+// Formulaires publics (depuis frontend Astro)
+Route::middleware(['throttle:contact'])->group(function () {
+    // Contact
+    Route::post('/contacts', [ContactController::class, 'store']);
+    
+    // Devis
+    Route::post('/devis', [DevisController::class, 'store']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Routes API Tickets (protégées)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:sanctum'])->prefix('tickets')->group(function () {
+    // AI Assistants
+    Route::post('/{assistant}', [AiController::class, 'handle'])
+        ->whereIn('assistant', ['support', 'dev', 'sales']);
+    
+    // CRUD Tickets
+    Route::get('/', [TicketController::class, 'index']);
+    Route::post('/', [TicketController::class, 'store']);
+    Route::get('/{ticket}', [TicketController::class, 'show']);
+    Route::post('/{ticket}/reply', [TicketController::class, 'reply']);
 });
 
 /*
@@ -33,31 +54,14 @@ Route::get('/health', function () {
 | Routes API Admin (protégées)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['throttle:contact', VerifyApiOrigin::class])->group(function () {
-    Route::post('/contacts', [ContactController::class, 'store']);
-});
-
-Route::middleware(['auth:sanctum'])->prefix('tickets')->group(function () {
-    Route::post('/{assistant}', [AiController::class, 'handle'])
-        ->whereIn('assistant', ['support', 'dev', 'sales']);
-    // Liste
-    Route::get('/', [TicketController::class, 'index']);
-    
-    // Créer
-    Route::post('/', [TicketController::class, 'store']);
-    
-    // Détail
-    Route::get('/{ticket}', [TicketController::class, 'show']);
-    
-    // Répondre
-    Route::post('/{ticket}/reply', [TicketController::class, 'reply']);
-});
 
 Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('admin')->group(function () {
+    
+    // AI Assistants Admin
     Route::post('/{assistant}', [AiController::class, 'handle'])
         ->whereIn('assistant', ['support', 'dev', 'sales']);
 
-    // Gestion des conversations
+    // Conversations IA
     Route::get('/conversations', [AiController::class, 'index']);
     Route::get('/conversations/{conversation}', [AiController::class, 'show']);
     Route::delete('/conversations/{conversation}', [AiController::class, 'destroy']);
