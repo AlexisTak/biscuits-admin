@@ -13,10 +13,11 @@ return [
 
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
-    'allowed_methods' => ['POST', 'OPTIONS'],
+    'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'https://biscuits-ia.com/',
+        'https://biscuits-ia.com',
+        'https://www.biscuits-ia.com',
     ],
 
     'allowed_origins_patterns' => [],
