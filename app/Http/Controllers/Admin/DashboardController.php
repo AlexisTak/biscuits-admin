@@ -20,15 +20,6 @@ class DashboardController extends Controller
         private readonly DashboardService $dashboardService
     ) {}
 
-    /**
-     * Affichage du dashboard admin
-     * 
-     * Stats:
-     * - Nombre de contacts
-     * - Nombre de devis
-     * - Revenus
-     * - Activité récente
-     */
     public function index(Request $request): View
 {
     // Récupération des stats via service

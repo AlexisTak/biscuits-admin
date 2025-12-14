@@ -21,6 +21,13 @@ Route::middleware(['throttle:10,1'])->group(function () {
     Route::post('/devis', [DevisController::class, 'store']);
 });
 
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'timestamp' => now()->toIso8601String(),
+    ]);
+});
+
 /*
 |--------------------------------------------------------------------------
 | Routes API Admin (protégées)
