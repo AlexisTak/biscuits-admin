@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -40,29 +41,54 @@ class Contact extends Model
         'fingerprint',
     ];
 
-    // Scopes
-    public function scopePending($query) {
+    // ============================================================================
+    // RELATIONS
+    // ============================================================================
+
+    /**
+     * Relation avec les devis (si tu as une table devis)
+     * Un contact peut avoir plusieurs devis
+     */
+    public function devis()
+    {
+        return $this->hasMany(\App\Models\Devis::class, 'contact_id');
+    }
+
+    // ============================================================================
+    // SCOPES
+    // ============================================================================
+
+    public function scopePending($query)
+    {
         return $query->where('status', 'pending');
     }
 
-    public function scopeProcessed($query) {
+    public function scopeProcessed($query)
+    {
         return $query->where('status', 'processed');
     }
 
-    public function scopeArchived($query) {
+    public function scopeArchived($query)
+    {
         return $query->where('status', 'archived');
     }
 
-    public function scopeUnread($query) {
+    public function scopeUnread($query)
+    {
         return $query->where('is_read', false);
     }
 
-    public function scopeRecent($query) {
+    public function scopeRecent($query)
+    {
         return $query->orderBy('created_at', 'desc');
     }
 
-    // Mutators
-    public function setEmailAttribute($value) {
+    // ============================================================================
+    // MUTATORS
+    // ============================================================================
+
+    public function setEmailAttribute($value)
+    {
         $this->attributes['email'] = strtolower(trim($value));
     }
 }
