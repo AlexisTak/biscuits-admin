@@ -55,6 +55,19 @@ Route::middleware(['auth:sanctum'])->prefix('tickets')->group(function () {
 |--------------------------------------------------------------------------
 */
 
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'timestamp' => now()->toIso8601String(),
+        'service' => 'Biscuits Dev API',
+    ]);
+});
+
+// Formulaire de contact (PUBLIC - depuis Astro)
+Route::middleware(['throttle:contact'])->group(function () {
+    Route::post('/contacts', [ContactController::class, 'store']);
+});
+
 Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('admin')->group(function () {
     
     // AI Assistants Admin

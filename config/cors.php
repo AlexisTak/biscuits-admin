@@ -1,39 +1,24 @@
 <?php
 
 return [
-
-    /*
-    |--------------------------------------------------------------------------
-    | Cross-Origin Resource Sharing (CORS) Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Configuration CORS pour autoriser votre frontend Astro
-    |
-    */
-
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'https://biscuits-ia.com',
-        'https://www.biscuits-ia.com',
+        'http://localhost:4321',
+        'http://127.0.0.1:4321',
+        'https://biscuits.dev',
+        'https://www.biscuits.dev',
     ],
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => [
-        'Content-Type',
-        'Accept',
-        'Authorization',
-        'X-Requested-With',
-        'X-CSRF-TOKEN',
-    ],
+    'allowed_headers' => ['*'],
 
     'exposed_headers' => [],
 
     'max_age' => 0,
 
     'supports_credentials' => true,
-
 ];
