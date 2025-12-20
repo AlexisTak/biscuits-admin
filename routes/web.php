@@ -14,6 +14,45 @@ Route::get('/login', function () {
     return redirect()->route('admin.login');
 })->name('login');
 
+Route::prefix('tickets')->name('tickets.')->group(function () {
+        
+        // Liste des tickets
+        Route::get('/', [AdminTicketController::class, 'index'])
+            ->name('index');
+        
+        // Voir un ticket
+        Route::get('/{ticket}', [AdminTicketController::class, 'show'])
+            ->name('show');
+        
+        // Répondre à un ticket
+        Route::post('/{ticket}/reply', [AdminTicketController::class, 'reply'])
+            ->name('reply');
+        
+        // Assigner un ticket
+        Route::post('/{ticket}/assign', [AdminTicketController::class, 'assign'])
+            ->name('assign');
+        
+        // Mettre à jour le statut
+        Route::post('/{ticket}/status', [AdminTicketController::class, 'updateStatus'])
+            ->name('updateStatus');
+        
+        // Mettre à jour la priorité
+        Route::post('/{ticket}/priority', [AdminTicketController::class, 'updatePriority'])
+            ->name('updatePriority');
+        
+        // Télécharger une pièce jointe
+        Route::get('/attachment/{attachment}/download', [AdminTicketController::class, 'downloadAttachment'])
+            ->name('attachment.download');
+        
+        // Supprimer un ticket
+        Route::delete('/{ticket}', [AdminTicketController::class, 'destroy'])
+            ->name('destroy');
+        
+        // Statistiques (optionnel)
+        Route::get('/stats/dashboard', [AdminTicketController::class, 'stats'])
+            ->name('stats');
+    });
+
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     
     Route::prefix('ai')->name('ai.')->group(function () {

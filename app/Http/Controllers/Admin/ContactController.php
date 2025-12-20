@@ -19,7 +19,8 @@ class ContactController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Contact::query()->with('devis')->withCount('devis');
+        // ⚠️ LIGNE CORRIGÉE : Relation 'devis' retirée
+        $query = Contact::query();
 
         // Recherche full-text sur plusieurs champs
         if ($search = $request->input('search')) {
@@ -75,9 +76,8 @@ class ContactController extends Controller
      */
     public function show(Contact $contact): View
     {
-        // Eager loading de la relation devis
-        $contact->load('devis');
-
+        // ⚠️ LIGNE CORRIGÉE : load('devis') retiré
+        
         // Marquer comme lu si non lu
         if (!$contact->is_read) {
             $contact->update(['is_read' => true]);
@@ -356,7 +356,7 @@ class ContactController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            Log::info('📥 Nouvelle soumission de contact', [
+            Log::info('🔥 Nouvelle soumission de contact', [
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
             ]);

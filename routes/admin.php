@@ -1,6 +1,7 @@
 <?php
 // routes/admin.php
 
+use App\Http\Controllers\Admin\AdminTicketController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\DevisController;
@@ -22,6 +23,45 @@ Route::middleware(['auth:sanctum', 'admin', 'throttle:120,1'])->prefix('admin')-
     Route::delete('/{contact}', [ContactController::class, 'destroy'])->name('destroy');
     Route::post('/bulk-delete', [ContactController::class, 'bulkDelete'])->name('bulk-delete');
 
+    });
+
+    Route::prefix('tickets')->name('tickets.')->group(function () {
+        
+        // Liste des tickets
+        Route::get('/', [AdminTicketController::class, 'index'])
+            ->name('index');
+        
+        // Voir un ticket
+        Route::get('/{ticket}', [AdminTicketController::class, 'show'])
+            ->name('show');
+        
+        // Répondre à un ticket
+        Route::post('/{ticket}/reply', [AdminTicketController::class, 'reply'])
+            ->name('reply');
+        
+        // Assigner un ticket
+        Route::post('/{ticket}/assign', [AdminTicketController::class, 'assign'])
+            ->name('assign');
+        
+        // Mettre à jour le statut
+        Route::post('/{ticket}/status', [AdminTicketController::class, 'updateStatus'])
+            ->name('updateStatus');
+        
+        // Mettre à jour la priorité
+        Route::post('/{ticket}/priority', [AdminTicketController::class, 'updatePriority'])
+            ->name('updatePriority');
+        
+        // Télécharger une pièce jointe
+        Route::get('/attachment/{attachment}/download', [AdminTicketController::class, 'downloadAttachment'])
+            ->name('attachment.download');
+        
+        // Supprimer un ticket
+        Route::delete('/{ticket}', [AdminTicketController::class, 'destroy'])
+            ->name('destroy');
+        
+        // Statistiques (optionnel)
+        Route::get('/stats/dashboard', [AdminTicketController::class, 'stats'])
+            ->name('stats');
     });
     
     // Devis

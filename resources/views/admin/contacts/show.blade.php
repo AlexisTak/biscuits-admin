@@ -74,6 +74,8 @@
                     :value="$contact->country"
                 />
 
+                {{-- RETIRÉ : Compteur de devis (à réactiver plus tard) --}}
+                {{-- 
                 <x-contact-info-item
                     icon="file-text"
                     label="Nombre de devis"
@@ -88,6 +90,7 @@
                         @endif
                     </span>
                 </x-contact-info-item>
+                --}}
 
                 <x-contact-info-item
                     icon="clock"

@@ -46,13 +46,13 @@ class Contact extends Model
     // ============================================================================
 
     /**
-     * Relation avec les devis (si tu as une table devis)
-     * Un contact peut avoir plusieurs devis
+     * COMMENTÉ : Relation avec les devis
+     * Décommentez cette méthode une fois que vous aurez ajouté la colonne contact_id à la table devis
      */
-    public function devis()
-    {
-        return $this->hasMany(\App\Models\Devis::class, 'contact_id');
-    }
+    // public function devis()
+    // {
+    //     return $this->hasMany(\App\Models\Devis::class, 'contact_id');
+    // }
 
     // ============================================================================
     // SCOPES
