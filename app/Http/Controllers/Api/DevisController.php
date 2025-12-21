@@ -30,8 +30,8 @@ class DevisController extends Controller
                 'service' => ['required', 'string', 'max:255'],
                 'budget' => ['nullable', 'string', 'max:50'],
                 'message' => ['nullable', 'string', 'max:2000'],
-                'honey' => ['nullable', 'string', 'max:0'],
-                'timestamp' => ['nullable', 'integer'],
+                'honey' => ['nullable', 'string', 'max:0'], // ✅ Honeypot
+                'timestamp' => ['nullable', 'integer'], // ✅ Timestamp
             ]);
 
             // ✅ Protection anti-spam : honeypot
@@ -41,6 +41,7 @@ class DevisController extends Controller
                     'email' => $validated['email'],
                 ]);
 
+                // Répondre comme si tout était OK
                 return response()->json([
                     'success' => true,
                     'message' => 'Demande de devis envoyée avec succès !',
@@ -89,7 +90,7 @@ class DevisController extends Controller
                     ['email' => strtolower(trim($validated['email']))],
                     [
                         'name' => strip_tags($validated['name']),
-                        'phone' => !empty($validated['phone']) ? strip_tags($validated['phone']) : null,
+                        'phone' => isset($validated['phone']) ? strip_tags($validated['phone']) : null,
                         'ip_address' => $request->ip(),
                         'user_agent' => $request->userAgent(),
                         'status' => 'pending',
@@ -97,27 +98,14 @@ class DevisController extends Controller
                     ]
                 );
 
-                // ✅ Helper pour gérer les champs optionnels vides
-                $getBudget = function() use ($validated) {
-                    if (!isset($validated['budget'])) return null;
-                    $budget = trim($validated['budget']);
-                    return $budget !== '' ? strip_tags($budget) : null;
-                };
-
-                $getMessage = function() use ($validated) {
-                    if (!isset($validated['message'])) return null;
-                    $message = trim($validated['message']);
-                    return $message !== '' ? strip_tags($message) : null;
-                };
-
                 // ✅ Créer le devis
                 $devis = Devis::create([
                     'name' => strip_tags($validated['name']),
                     'email' => strtolower(trim($validated['email'])),
-                    'phone' => !empty($validated['phone']) ? strip_tags($validated['phone']) : null,
+                    'phone' => isset($validated['phone']) ? strip_tags($validated['phone']) : null,
                     'service' => strip_tags($validated['service']),
-                    'budget' => $getBudget(), // ✅ Gestion correcte des chaînes vides
-                    'message' => $getMessage(), // ✅ Gestion correcte des chaînes vides
+                    'budget' => isset($validated['budget']) ? strip_tags($validated['budget']) : null,
+                    'message' => isset($validated['message']) ? strip_tags($validated['message']) : null,
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
                     'status' => 'pending',
@@ -130,7 +118,6 @@ class DevisController extends Controller
                     'contact_id' => $contact->id,
                     'email' => $devis->email,
                     'service' => $devis->service,
-                    'budget' => $devis->budget ?? 'NULL',
                 ]);
 
                 // TODO: Envoyer email de notification (via queue)
