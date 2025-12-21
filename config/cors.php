@@ -1,26 +1,40 @@
 <?php
 
 return [
-    'paths' => ['api/*'],
+    /*
+    |--------------------------------------------------------------------------
+    | Cross-Origin Resource Sharing (CORS) Configuration
+    |--------------------------------------------------------------------------
+    */
 
-    'allowed_methods' => ['POST', 'GET', 'OPTIONS'],
+    'paths' => [
+        'api/*',
+        'sanctum/csrf-cookie',
+    ],
+
+    'allowed_methods' => ['*'], // ✅ Autoriser toutes les méthodes
 
     'allowed_origins' => [
         'https://biscuits-ia.com',
+        'https://www.biscuits-ia.com',
         'http://localhost:4321',
         'http://127.0.0.1:4321',
+        'http://localhost:3000', // Pour les tests locaux
     ],
 
-    'allowed_origins_patterns' => [],
-
-    'allowed_headers' => [
-        'Content-Type',
-        'Accept',
+    'allowed_origins_patterns' => [
+        // Si vous avez des sous-domaines
+        // '/^https:\/\/.*\.biscuits-ia\.com$/',
     ],
 
-    'exposed_headers' => [],
+    'allowed_headers' => ['*'], // ✅ Autoriser tous les headers
 
-    'max_age' => 0,
+    'exposed_headers' => [
+        'X-RateLimit-Limit',
+        'X-RateLimit-Remaining',
+    ],
 
-    'supports_credentials' => false,
+    'max_age' => 86400, // Cache preflight pendant 24h
+
+    'supports_credentials' => false, // Pas besoin de cookies pour l'API publique
 ];
