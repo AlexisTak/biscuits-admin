@@ -11,7 +11,7 @@ class Devis extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'devis'; // Nom de la table au pluriel
+    protected $table = 'devis';
 
     protected $fillable = [
         'name',
@@ -23,22 +23,52 @@ class Devis extends Model
         'status',
         'notes',
         'priority',
+        'amount',
         'ip_address',
         'user_agent',
     ];
 
     protected $casts = [
+        'amount' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
 
+    protected $attributes = [
+        'status' => 'pending',
+        'priority' => 'normal',
+    ];
+
     /**
-     * ✅ RELATION INVERSE : Un devis appartient à un contact (via email)
+     * ✅ Relation avec le contact (via email)
      */
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class, 'email', 'email');
+    }
+
+    /**
+     * Scopes
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('status', 'approved');
+    }
+
+    public function scopeRejected($query)
+    {
+        return $query->where('status', 'rejected');
+    }
+
+    public function scopeRecent($query)
+    {
+        return $query->orderBy('created_at', 'desc');
     }
 
     /**
@@ -48,10 +78,23 @@ class Devis extends Model
     {
         return match ($this->status) {
             'pending' => 'En attente',
-            'accepted' => 'Accepté',
-            'rejected' => 'Refusé',
+            'approved' => 'Approuvé',
+            'rejected' => 'Rejeté',
             'processed' => 'Traité',
             default => ucfirst($this->status),
+        };
+    }
+
+    /**
+     * Accessor : Badge de priorité
+     */
+    public function getPriorityBadgeAttribute(): string
+    {
+        return match ($this->priority) {
+            'high' => 'danger',
+            'normal' => 'warning',
+            'low' => 'success',
+            default => 'secondary',
         };
     }
 }
