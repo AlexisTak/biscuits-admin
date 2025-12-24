@@ -22,6 +22,11 @@ Route::get('/health', function () {
     ]);
 });
 
+Route::middleware(['throttle:30,1'])->group(function () {
+    Route::post('/ai/{assistant}', [AiController::class, 'handle'])
+        ->whereIn('assistant', ['support', 'dev', 'sales']);
+});
+
 // Formulaires publics (depuis frontend Astro)
 Route::middleware(['throttle:contact'])->group(function () {
     // Contact
