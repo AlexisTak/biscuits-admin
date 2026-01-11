@@ -72,7 +72,7 @@ class DevisController extends Controller
                     ->where('created_at', '>=', now()->subHour())
                     ->count();
 
-                if ($recentCount >= 3) {
+                if ($recentCount >= 5) {
                     Log::warning('🚫 Rate limit dépassé (devis)', [
                         'ip' => $request->ip(),
                         'count' => $recentCount,
