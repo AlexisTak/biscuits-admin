@@ -31,8 +31,6 @@ class StoreContactRequest extends FormRequest
             'service' => ['required', 'string', 'max:255'],
             'message' => ['required', 'string', 'min:20', 'max:2000'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'address' => ['nullable', 'string', 'max:500'],
-            'zip_code' => ['nullable', 'string', 'max:20'],
             'website' => ['nullable', 'string', 'max:0'],
             'ip_address' => ['sometimes', 'ip'],
             'user_agent' => ['sometimes', 'string', 'max:500'],

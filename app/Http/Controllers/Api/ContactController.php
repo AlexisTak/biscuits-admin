@@ -30,8 +30,8 @@ class ContactController extends Controller
                 'country' => ['required', 'string', 'max:100'],
                 'service' => ['required', 'string', 'max:255'],
                 'message' => ['required', 'string', 'min:20', 'max:2000'],
-                'honey' => ['nullable', 'string', 'max:0'], // ✅ Honeypot
-                'timestamp' => ['nullable', 'integer'], // ✅ Timestamp
+                'honey' => ['nullable', 'string', 'max:0'],
+                'timestamp' => ['nullable', 'integer'],
             ]);
 
             // ✅ Protection anti-spam : honeypot
