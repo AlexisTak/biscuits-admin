@@ -22,21 +22,21 @@ class DevisController extends Controller
                 'origin' => $request->header('Origin'),
             ]);
 
-            // Validation stricte avec adresse et code postal
+            // ✅ Validation stricte
             $validated = $request->validate([
                 'name' => ['required', 'string', 'min:2', 'max:100'],
                 'email' => ['required', 'email', 'max:255'],
                 'phone' => ['nullable', 'string', 'max:20'],
-                'address' => ['required', 'string', 'min:5', 'max:255'],      // ✅ Obligatoire
-                'zip_code' => ['required', 'string', 'regex:/^[0-9]{5}$/'],  // ✅ Obligatoire
+                'address' => ['required', 'string', 'min:5', 'max:255'],
+                'zip_code' => ['required', 'string', 'regex:/^[0-9]{5}$/'],
                 'service' => ['required', 'string', 'max:255'],
                 'budget' => ['nullable', 'string', 'max:50'],
-                'message' => ['required', 'string', 'min:20', 'max:2000'],   // ✅ Rendu obligatoire
+                'message' => ['required', 'string', 'min:20', 'max:2000'],
                 'honey' => ['nullable', 'string', 'max:0'],
                 'timestamp' => ['nullable', 'integer'],
             ]);
 
-            // Protection anti-spam : honeypot
+            // ✅ Protection anti-spam : honeypot
             if (!empty($validated['honey'])) {
                 Log::warning('🚫 Spam détecté (devis) - honeypot rempli', [
                     'ip' => $request->ip(),
@@ -49,7 +49,7 @@ class DevisController extends Controller
                 ], 200);
             }
 
-            // Protection anti-spam : timestamp
+            // ✅ Protection anti-spam : timestamp
             if (isset($validated['timestamp'])) {
                 $elapsed = time() - $validated['timestamp'];
                 
@@ -66,34 +66,36 @@ class DevisController extends Controller
                 }
             }
 
-            // Vérification rate-limit par IP (max 3 par heure)
-            $recentCount = Devis::where('ip_address', $request->ip())
-                ->where('created_at', '>=', now()->subHour())
-                ->count();
+            // ✅ Rate limit UNIQUEMENT en production
+            if (!app()->environment('local', 'development')) {
+                $recentCount = Devis::where('ip_address', $request->ip())
+                    ->where('created_at', '>=', now()->subHour())
+                    ->count();
 
-            if ($recentCount >= 3) {
-                Log::warning('🚫 Rate limit dépassé (devis)', [
-                    'ip' => $request->ip(),
-                    'count' => $recentCount,
-                ]);
+                if ($recentCount >= 3) {
+                    Log::warning('🚫 Rate limit dépassé (devis)', [
+                        'ip' => $request->ip(),
+                        'count' => $recentCount,
+                    ]);
 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Trop de demandes. Veuillez réessayer dans 1 heure.',
-                ], 429);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Trop de demandes. Veuillez réessayer dans 1 heure.',
+                    ], 429);
+                }
             }
 
             DB::beginTransaction();
             
             try {
-                // Créer ou récupérer le contact avec adresse et code postal
+                // ✅ Créer ou récupérer le contact
                 $contact = Contact::firstOrCreate(
                     ['email' => strtolower(trim($validated['email']))],
                     [
                         'name' => strip_tags($validated['name']),
                         'phone' => isset($validated['phone']) ? strip_tags($validated['phone']) : null,
-                        'address' => strip_tags($validated['address']),        // ✅ Ajout
-                        'zip_code' => strip_tags($validated['zip_code']),      // ✅ Ajout
+                        'address' => strip_tags($validated['address']),
+                        'zip_code' => strip_tags($validated['zip_code']),
                         'ip_address' => $request->ip(),
                         'user_agent' => $request->userAgent(),
                         'status' => 'pending',
@@ -101,11 +103,13 @@ class DevisController extends Controller
                     ]
                 );
 
-                // Créer le devis
+                // ✅ Créer le devis
                 $devis = Devis::create([
                     'name' => strip_tags($validated['name']),
                     'email' => strtolower(trim($validated['email'])),
                     'phone' => isset($validated['phone']) ? strip_tags($validated['phone']) : null,
+                    'address' => strip_tags($validated['address']),
+                    'zip_code' => strip_tags($validated['zip_code']),
                     'service' => strip_tags($validated['service']),
                     'budget' => isset($validated['budget']) ? strip_tags($validated['budget']) : null,
                     'message' => strip_tags($validated['message']),
@@ -116,15 +120,12 @@ class DevisController extends Controller
 
                 DB::commit();
 
-                Log::info('Devis créé avec succès', [
+                Log::info('✅ Devis créé avec succès', [
                     'devis_id' => $devis->id,
                     'contact_id' => $contact->id,
                     'email' => $devis->email,
                     'service' => $devis->service,
                 ]);
-
-                // TODO: Envoyer email de notification (via queue)
-                // dispatch(new SendDevisNotification($devis));
 
                 return response()->json([
                     'success' => true,
