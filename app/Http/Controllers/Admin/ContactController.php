@@ -386,22 +386,6 @@ class ContactController extends Controller
                 ], 422);
             }
 
-            // Protection anti-spam : timestamp (formulaire rempli trop vite)
-            if (isset($validated['timestamp'])) {
-                $elapsed = now()->timestamp - $validated['timestamp'];
-                if ($elapsed < 3) { // Moins de 3 secondes
-                    Log::warning('🚫 Spam détecté - formulaire rempli trop vite', [
-                        'elapsed' => $elapsed,
-                        'ip' => $request->ip(),
-                    ]);
-
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Veuillez prendre le temps de remplir le formulaire.',
-                    ], 422);
-                }
-            }
-
             // Création du contact
             $contact = Contact::create([
                 'name' => strip_tags($validated['name']),
