@@ -16,6 +16,8 @@ class StoreDevisRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'min:2', 'max:100', 'regex:/^[\p{L}\s\-\'\.]+$/u'],
             'email' => ['required', 'email:rfc,dns', 'max:100'],
+            'address' => ['nullable', 'string', 'max:255'], 
+            'zip_code' => ['nullable', 'string', 'max:20'],
             'service' => ['required', 'string', 'max:150'],
             'budget' => ['nullable', 'string', 'max:50'],
             'message' => ['nullable', 'string', 'max:2000'],

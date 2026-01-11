@@ -16,39 +16,40 @@ class DevisController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            Log::info('🔥 Nouvelle demande de devis', [
+            Log::info('📥 Nouvelle demande de devis', [
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'origin' => $request->header('Origin'),
             ]);
 
-            // ✅ Validation stricte
+            // Validation stricte avec adresse et code postal
             $validated = $request->validate([
                 'name' => ['required', 'string', 'min:2', 'max:100'],
                 'email' => ['required', 'email', 'max:255'],
                 'phone' => ['nullable', 'string', 'max:20'],
+                'address' => ['required', 'string', 'min:5', 'max:255'],      // ✅ Obligatoire
+                'zip_code' => ['required', 'string', 'regex:/^[0-9]{5}$/'],  // ✅ Obligatoire
                 'service' => ['required', 'string', 'max:255'],
                 'budget' => ['nullable', 'string', 'max:50'],
-                'message' => ['nullable', 'string', 'max:2000'],
-                'honey' => ['nullable', 'string', 'max:0'], // ✅ Honeypot
-                'timestamp' => ['nullable', 'integer'], // ✅ Timestamp
+                'message' => ['required', 'string', 'min:20', 'max:2000'],   // ✅ Rendu obligatoire
+                'honey' => ['nullable', 'string', 'max:0'],
+                'timestamp' => ['nullable', 'integer'],
             ]);
 
-            // ✅ Protection anti-spam : honeypot
+            // Protection anti-spam : honeypot
             if (!empty($validated['honey'])) {
                 Log::warning('🚫 Spam détecté (devis) - honeypot rempli', [
                     'ip' => $request->ip(),
                     'email' => $validated['email'],
                 ]);
 
-                // Répondre comme si tout était OK
                 return response()->json([
                     'success' => true,
                     'message' => 'Demande de devis envoyée avec succès !',
                 ], 200);
             }
 
-            // ✅ Protection anti-spam : timestamp
+            // Protection anti-spam : timestamp
             if (isset($validated['timestamp'])) {
                 $elapsed = time() - $validated['timestamp'];
                 
@@ -65,7 +66,7 @@ class DevisController extends Controller
                 }
             }
 
-            // ✅ Vérification rate-limit par IP (max 3 par heure)
+            // Vérification rate-limit par IP (max 3 par heure)
             $recentCount = Devis::where('ip_address', $request->ip())
                 ->where('created_at', '>=', now()->subHour())
                 ->count();
@@ -85,12 +86,14 @@ class DevisController extends Controller
             DB::beginTransaction();
             
             try {
-                // ✅ Créer ou récupérer le contact
+                // Créer ou récupérer le contact avec adresse et code postal
                 $contact = Contact::firstOrCreate(
                     ['email' => strtolower(trim($validated['email']))],
                     [
                         'name' => strip_tags($validated['name']),
                         'phone' => isset($validated['phone']) ? strip_tags($validated['phone']) : null,
+                        'address' => strip_tags($validated['address']),        // ✅ Ajout
+                        'zip_code' => strip_tags($validated['zip_code']),      // ✅ Ajout
                         'ip_address' => $request->ip(),
                         'user_agent' => $request->userAgent(),
                         'status' => 'pending',
@@ -98,14 +101,14 @@ class DevisController extends Controller
                     ]
                 );
 
-                // ✅ Créer le devis
+                // Créer le devis
                 $devis = Devis::create([
                     'name' => strip_tags($validated['name']),
                     'email' => strtolower(trim($validated['email'])),
                     'phone' => isset($validated['phone']) ? strip_tags($validated['phone']) : null,
                     'service' => strip_tags($validated['service']),
                     'budget' => isset($validated['budget']) ? strip_tags($validated['budget']) : null,
-                    'message' => isset($validated['message']) ? strip_tags($validated['message']) : null,
+                    'message' => strip_tags($validated['message']),
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
                     'status' => 'pending',
@@ -113,7 +116,7 @@ class DevisController extends Controller
 
                 DB::commit();
 
-                Log::info('✅ Devis créé avec succès', [
+                Log::info('Devis créé avec succès', [
                     'devis_id' => $devis->id,
                     'contact_id' => $contact->id,
                     'email' => $devis->email,
