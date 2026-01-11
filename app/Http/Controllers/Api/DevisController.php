@@ -49,23 +49,6 @@ class DevisController extends Controller
                 ], 200);
             }
 
-            // ✅ Protection anti-spam : timestamp
-            if (isset($validated['timestamp'])) {
-                $elapsed = time() - $validated['timestamp'];
-                
-                if ($elapsed < 3) {
-                    Log::warning('🚫 Spam détecté (devis) - formulaire rempli trop vite', [
-                        'elapsed' => $elapsed,
-                        'ip' => $request->ip(),
-                    ]);
-
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Veuillez prendre le temps de remplir le formulaire.',
-                    ], 422);
-                }
-            }
-
             // ✅ Rate limit UNIQUEMENT en production
             if (!app()->environment('local', 'development')) {
                 $recentCount = Devis::where('ip_address', $request->ip())
